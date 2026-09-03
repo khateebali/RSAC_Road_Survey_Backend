@@ -60,8 +60,10 @@ public class RoadInventory {
     @Column(name = "construction_scheme")
     private String constructionScheme;
 
+    // NUMERIC(6,0) in the DDL, not int4 — matches Hibernate schema validation
+    // against the real column type (caught by an actual boot against db-primary).
     @Column(name = "year_of_construction")
-    private Integer yearOfConstruction;
+    private BigDecimal yearOfConstruction;
 
     @Column(name = "nearby_landmark")
     private String nearbyLandmark;
@@ -160,8 +162,8 @@ public class RoadInventory {
     public String getConstructionScheme() { return constructionScheme; }
     public void setConstructionScheme(String constructionScheme) { this.constructionScheme = constructionScheme; }
 
-    public Integer getYearOfConstruction() { return yearOfConstruction; }
-    public void setYearOfConstruction(Integer yearOfConstruction) { this.yearOfConstruction = yearOfConstruction; }
+    public BigDecimal getYearOfConstruction() { return yearOfConstruction; }
+    public void setYearOfConstruction(BigDecimal yearOfConstruction) { this.yearOfConstruction = yearOfConstruction; }
 
     public String getNearbyLandmark() { return nearbyLandmark; }
     public void setNearbyLandmark(String nearbyLandmark) { this.nearbyLandmark = nearbyLandmark; }
