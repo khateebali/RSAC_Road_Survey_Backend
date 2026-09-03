@@ -1,0 +1,27 @@
+# Secrets — never commit real credentials
+application-local.properties
+application-secrets.properties
+.env
+*.pem
+*.key
+
+# Maven / Gradle
+target/
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
