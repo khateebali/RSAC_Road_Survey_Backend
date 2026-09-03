@@ -578,6 +578,15 @@ CREATE TABLE survey_sessions (
     -- can be a different city the next time the same RSAC user logs in.
     active_nagar_nigam_id                       VARCHAR(32) NOT NULL,
 
+    -- Which survey module this session is working in — so two people can survey the
+    -- same road at the same time without collision: one doing ROAD_DIRECTORY_UPDATE,
+    -- another DRAIN_UPDATE, another the new tender's ROAD_INVENTORY_SURVEY (the
+    -- 12-layer survey, Section 2). Chosen once at login, not switchable mid-session —
+    -- picking up a different module means logging in again (a new session), same
+    -- principle as active_nagar_nigam_id above.
+    module                                      VARCHAR(32) NOT NULL
+                                                  CHECK (module IN ('ROAD_DIRECTORY_UPDATE','DRAIN_UPDATE','ROAD_INVENTORY_SURVEY')),
+
     login_at                                    TIMESTAMP NOT NULL DEFAULT now(),
     logout_at                                   TIMESTAMP,
     last_heartbeat_at                           TIMESTAMP NOT NULL DEFAULT now()

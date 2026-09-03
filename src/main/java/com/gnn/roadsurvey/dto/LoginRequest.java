@@ -14,6 +14,10 @@ public class LoginRequest {
     // ignored for NAGAR_NIGAM accounts, whose city comes from their profile.
     private String requestedNagarNigamId;
 
+    // Required for every login: ROAD_DIRECTORY_UPDATE | DRAIN_UPDATE | ROAD_INVENTORY_SURVEY.
+    @NotBlank
+    private String module;
+
     private String deviceId;
     private String appVersion;
 
@@ -25,6 +29,9 @@ public class LoginRequest {
 
     public String getRequestedNagarNigamId() { return requestedNagarNigamId; }
     public void setRequestedNagarNigamId(String requestedNagarNigamId) { this.requestedNagarNigamId = requestedNagarNigamId; }
+
+    public String getModule() { return module; }
+    public void setModule(String module) { this.module = module; }
 
     public String getDeviceId() { return deviceId; }
     public void setDeviceId(String deviceId) { this.deviceId = deviceId; }

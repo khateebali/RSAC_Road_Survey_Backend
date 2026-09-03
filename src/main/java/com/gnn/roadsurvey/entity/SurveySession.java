@@ -35,6 +35,12 @@ public class SurveySession {
     @Column(name = "active_nagar_nigam_id", nullable = false)
     private String activeNagarNigamId;
 
+    // Which survey module this session works in (ROAD_DIRECTORY_UPDATE / DRAIN_UPDATE /
+    // ROAD_INVENTORY_SURVEY) — lets two people survey the same road simultaneously
+    // without collision. Chosen once at login, fixed for the session's lifetime.
+    @Column(name = "module", nullable = false)
+    private String module;
+
     @Column(name = "login_at", nullable = false, updatable = false)
     private LocalDateTime loginAt;
 
@@ -65,6 +71,9 @@ public class SurveySession {
 
     public String getActiveNagarNigamId() { return activeNagarNigamId; }
     public void setActiveNagarNigamId(String activeNagarNigamId) { this.activeNagarNigamId = activeNagarNigamId; }
+
+    public String getModule() { return module; }
+    public void setModule(String module) { this.module = module; }
 
     public LocalDateTime getLoginAt() { return loginAt; }
 

@@ -33,7 +33,7 @@ public class JwtUtil {
     }
 
     public String generateToken(UUID userId, String username, String role, String orgType,
-                                 String activeNagarNigamId, UUID sessionId) {
+                                 String activeNagarNigamId, String module, UUID sessionId) {
         Date expiry = new Date(System.currentTimeMillis() + jwtExpirationMs);
 
         return Jwts.builder()
@@ -42,6 +42,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .claim("orgType", orgType)
                 .claim("activeNagarNigamId", activeNagarNigamId)
+                .claim("module", module)
                 .claim("sessionId", sessionId.toString())
                 .setIssuedAt(new Date())
                 .setExpiration(expiry)
@@ -80,6 +81,10 @@ public class JwtUtil {
 
     public String getActiveNagarNigamId(String token) {
         return parseClaims(token).get("activeNagarNigamId", String.class);
+    }
+
+    public String getModule(String token) {
+        return parseClaims(token).get("module", String.class);
     }
 
     public UUID getSessionId(String token) {

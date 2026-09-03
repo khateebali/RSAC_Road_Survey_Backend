@@ -3,6 +3,7 @@ package com.gnn.roadsurvey.service;
 import com.gnn.roadsurvey.dto.AuthResponse;
 import com.gnn.roadsurvey.dto.LoginRequest;
 import com.gnn.roadsurvey.entity.OrgType;
+import com.gnn.roadsurvey.entity.SurveyModule;
 import com.gnn.roadsurvey.entity.SurveySession;
 import com.gnn.roadsurvey.entity.User;
 import com.gnn.roadsurvey.repository.SurveySessionRepository;
@@ -50,12 +51,14 @@ public class AuthService {
         }
 
         String activeNagarNigamId = resolveActiveCity(user, request.getRequestedNagarNigamId());
+        String module = validateModule(request.getModule());
 
         SurveySession session = new SurveySession();
         session.setUserId(user.getUserId());
         session.setDeviceId(request.getDeviceId());
         session.setAppVersion(request.getAppVersion());
         session.setActiveNagarNigamId(activeNagarNigamId);
+        session.setModule(module);
         session = surveySessionRepository.save(session);
 
         String token = jwtUtil.generateToken(
@@ -64,11 +67,23 @@ public class AuthService {
                 user.getRole().name(),
                 user.getOrgType().name(),
                 activeNagarNigamId,
+                module,
                 session.getSessionId()
         );
 
         return new AuthResponse(token, user.getUserId().toString(), user.getName(),
-                user.getRole().name(), user.getOrgType().name(), activeNagarNigamId);
+                user.getRole().name(), user.getOrgType().name(), activeNagarNigamId, module);
+    }
+
+    private String validateModule(String module) {
+        if (module == null) {
+            throw new AuthException("A survey module must be selected at login");
+        }
+        try {
+            return SurveyModule.valueOf(module).name();
+        } catch (IllegalArgumentException e) {
+            throw new AuthException("Unknown survey module: " + module);
+        }
     }
 
     private String resolveActiveCity(User user, String requestedNagarNigamId) {
