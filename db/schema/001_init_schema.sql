@@ -505,7 +505,18 @@ CREATE INDEX idx_road_obstructions_geom ON road_obstructions USING GIST (geom);
 -- ============================================================================
 CREATE TABLE users (
     user_id                                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nagar_nigam_id                              VARCHAR(32) NOT NULL DEFAULT 'GNN',
+
+    -- org_type distinguishes WHO the account belongs to; role (below) distinguishes
+    -- WHAT they can do — the two are independent dimensions. RSAC (state-level oversight
+    -- body) accounts are not fixed to one city; Nagar Nigam accounts (e.g. Ghaziabad's own
+    -- surveyors/reviewers/admins) are permanently fixed to the one city on their profile.
+    org_type                                    VARCHAR(16) NOT NULL DEFAULT 'NAGAR_NIGAM'
+                                                  CHECK (org_type IN ('RSAC','NAGAR_NIGAM')),
+    nagar_nigam_id                              VARCHAR(32),   -- REQUIRED and fixed for
+                                                                 -- NAGAR_NIGAM accounts; NULL for
+                                                                 -- RSAC accounts, who pick a city
+                                                                 -- per session instead (see
+                                                                 -- survey_sessions.active_nagar_nigam_id)
 
     name                                        VARCHAR(255) NOT NULL,
     designation                                 VARCHAR(128),
@@ -525,11 +536,17 @@ CREATE TABLE users (
 
     created_at                                  TIMESTAMP NOT NULL DEFAULT now(),
     updated_at                                  TIMESTAMP NOT NULL DEFAULT now(),
-    deactivated_at                              TIMESTAMP
+    deactivated_at                              TIMESTAMP,
+
+    CONSTRAINT chk_users_city_scope CHECK (
+        (org_type = 'NAGAR_NIGAM' AND nagar_nigam_id IS NOT NULL)
+        OR (org_type = 'RSAC' AND nagar_nigam_id IS NULL)
+    )
 );
 
 CREATE INDEX idx_users_role ON users (role);
 CREATE INDEX idx_users_active ON users (active);
+CREATE INDEX idx_users_org_type ON users (org_type);
 
 -- Now that users exists, wire up the surveyor_id FKs deferred above.
 ALTER TABLE road_inventory            ADD CONSTRAINT fk_road_inventory_surveyor            FOREIGN KEY (surveyor_id) REFERENCES users(user_id);
@@ -554,6 +571,13 @@ CREATE TABLE survey_sessions (
     device_id                                   VARCHAR(128),
     app_version                                 VARCHAR(32),
 
+    -- Which city this session is scoped to. For a NAGAR_NIGAM user this always equals
+    -- their fixed users.nagar_nigam_id (set at login, never changed mid-session). For an
+    -- RSAC user, whichever city they picked at login — every row/query this session
+    -- touches is scoped to this value, not to anything stored on the user profile, and it
+    -- can be a different city the next time the same RSAC user logs in.
+    active_nagar_nigam_id                       VARCHAR(32) NOT NULL,
+
     login_at                                    TIMESTAMP NOT NULL DEFAULT now(),
     logout_at                                   TIMESTAMP,
     last_heartbeat_at                           TIMESTAMP NOT NULL DEFAULT now()
@@ -561,6 +585,7 @@ CREATE TABLE survey_sessions (
 
 CREATE INDEX idx_survey_sessions_user_id ON survey_sessions (user_id);
 CREATE INDEX idx_survey_sessions_last_heartbeat ON survey_sessions (last_heartbeat_at);
+CREATE INDEX idx_survey_sessions_active_city ON survey_sessions (active_nagar_nigam_id);
 
 -- ============================================================================
 -- 2.13  survey_media  (photo/video indexing, multi-photo, geotag metadata)
