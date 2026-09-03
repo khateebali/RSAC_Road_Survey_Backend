@@ -13,7 +13,10 @@
 $tunnelUp = Get-NetTCPConnection -LocalPort 15432 -State Listen -ErrorAction SilentlyContinue
 if (-not $tunnelUp) {
     Write-Host "SSH tunnel to db-primary is down — reconnecting..." -ForegroundColor Yellow
-    Start-Process ssh -ArgumentList "-f", "-N", "-L", "15432:localhost:5432", "db-primary" -NoNewWindow
+    # Port 6432 = PgBouncer on db-primary, not direct Postgres (5432). The
+    # backend connects through the "gnn_survey_app" pool, matching the same
+    # pattern nv_allnndb's own apps already use on this server.
+    Start-Process ssh -ArgumentList "-f", "-N", "-L", "15432:localhost:6432", "db-primary" -NoNewWindow
     Start-Sleep -Seconds 2
 } else {
     Write-Host "SSH tunnel already up." -ForegroundColor Green
